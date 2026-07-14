@@ -23,22 +23,31 @@ class RegistrationControllerTest extends WebTestCase
         $client = static::createClient();
         $crawler = $client->request('GET', '/register');
 
-        $email = sprintf('john-$s@test.fr', bin2hex(random_bytes(6)));
+        $email = sprintf('john-%s@test.fr', bin2hex(random_bytes(6)));
 
         // $client->submitForm('Créer un compte', [
         //     'registration_form[email]' => 'john@test.fr',
-        //     'registration_form[plainPassword]' => 'Password1234',
+        //     'registration_form[plainPassword]' => 'Password123!',
         // ]);
         $client->submitForm('Créer un compte', [
             'registration_form[email]' => $email,
-            'registration_form[plainPassword]' => 'Password1234!',
+            'registration_form[plainPassword]' => 'Password123!',
         ]);
 
         $this->assertResponseRedirects('/login');
+        // $this->assertResponseRedirects();
+
+        // $client->followRedirect();
+
+        // $this->assertSelectorExists('h1');
+
 
         $userRepository = static::getContainer()->get(UserRepository::class);
+        // $user = $userRepository->findOneBy([
+        //     'email' => 'john@test.fr',
+        // ]);
         $user = $userRepository->findOneBy([
-            'email' => '$email',
+            'email' => $email,
         ]);
 
         $this->assertNotNull($user);
@@ -51,11 +60,11 @@ class RegistrationControllerTest extends WebTestCase
 
         $client->submitForm('Créer un compte', [
             'registration_form[email]' => 'toto',
-            'registration_form[plainPassword]' => 'Password1234!',
+            'registration_form[plainPassword]' => 'Password123!',
         ]);
 
         $this->assertResponseStatusCodeSame(422);
-        $this->assertSelectorTextContains('body', 'adresse email valide');
+        $this->assertAnySelectorTextContains('body', 'adresse email valide');
     }
 
     public function testUserCannotRegisterWithShortPassword(): void
@@ -64,11 +73,11 @@ class RegistrationControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/register');
 
         $client->submitForm('Créer un compte', [
-            'registration_form[email]' => 'short@test.Fr',
+            'registration_form[email]' => 'short@test.fr',
             'registration_form[plainPassword]' => '123',
         ]);
 
         $this->assertResponseStatusCodeSame(422);
-        $this->assertSelectorTextContains('body', '12 caractères');
+        $this->assertAnySelectorTextContains('body', '12 caractères');
     }
 }

@@ -13,37 +13,23 @@ class SecurityControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/login');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'Conenxion');
+        $this->assertSelectorTextContains('h1', 'Connexion');
         $this->assertSelectorExists('input[name="_username"]');
         $this->assertSelectorExists('input[name="_password"]');
     }
+
     public function testUserCanLogin(): void
     {
         $client = static::createClient();
         $crawler = $client->request('GET', '/login');
 
-        $client->submitForm('Se Connecter', [
+        $client->submitForm('Se connecter', [
             '_username' => 'user@test.fr',
             '_password' => 'Password123!',
-
         ]);
+
         $this->assertSelectorNotExists('.csrf-error');
-        $this->assertResponseRedirects('/$dashboard');
-    }
-    public function testUserCanAccessDahboardWhenLoggedIn(): void
-    {
-        $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneBy([
-            'email' => 'user@test.fr',
-
-        ]);
-        $client->loginUser($user);
-
-        $client->request('GET', '/dashboard');
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'Dashboard');
+        $this->assertResponseRedirects('/dashboard');
     }
 
     public function testBadCredentialsAreRejected(): void
@@ -71,11 +57,29 @@ class SecurityControllerTest extends WebTestCase
         }
     }
 
+    public function testUserCanAccessDashboardWhenLoggedIn(): void
+    {
+        $client = static::createClient();
+
+        $userRepository = static::getContainer()->get(UserRepository::class);
+        $user = $userRepository->findOneBy([
+            'email' => 'user@test.fr',
+        ]);
+
+        $client->loginUser($user);
+
+        $client->request('GET', '/dashboard');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h1', 'Dashboard');
+    }
+
     public function testAnonymousUserCannotAccessDashboard(): void
     {
-
         $client = static::createClient();
+
         $client->request('GET', '/dashboard');
+
         $this->assertResponseRedirects('/login');
     }
 }
