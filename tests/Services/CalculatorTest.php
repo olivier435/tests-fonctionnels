@@ -5,6 +5,7 @@ namespace App\Tests\Services;
 use App\Services\Calculator;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Metadata\DataProvider;
 
 class CalculatorTest extends TestCase
 {
@@ -14,6 +15,24 @@ class CalculatorTest extends TestCase
     {
         //j instencie cet objet calculator
         $this->calculator = new Calculator();
+    }
+    #[DataProvider('additionProvider')]
+    public function testAdd(int $a, int $b, int $expected): void
+    {
+        $this->assertSame(
+            $expected,
+            $this->calculator->add($a, $b)
+        );
+    }
+
+    public static function additionProvider(): array
+    {
+        return [
+            'addtion de deux nombre positifs' => [2, 2, 5],
+            'addtion de deux zeros' => [0, 0, 0],
+            'addtion négatif et positif' => [-2, 3, 1],
+            'addtion de  granc nombre' => [10, 15, 25],
+        ];
     }
     public function testAddition(): void
     {
